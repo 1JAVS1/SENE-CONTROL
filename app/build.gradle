@@ -1,0 +1,12 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.sene.conect'
+    compileSdk 35
+    defaultConfig {
+        applicationId 'com.sene.conect'
+        minSdk 23
+        targetSdk 35
+        versionCode 2
+        versionName '2.0'
+    }
+}

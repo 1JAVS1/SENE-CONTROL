@@ -1,71 +1,34 @@
 package com.sene.conect;
-
-import android.Manifest;
-import android.app.Activity;
-import android.bluetooth.*;
-import android.bluetooth.le.*;
-import android.content.*;
-import android.content.pm.PackageManager;
-import android.os.*;
-import android.graphics.Color;
-import android.graphics.Typeface;
-import android.view.*;
-import android.widget.*;
-import java.nio.charset.StandardCharsets;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-public class MainActivity extends Activity {
-    private static final UUID SERVICE=UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e");
-    private static final UUID TX=UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
-    private BluetoothAdapter adapter; private BluetoothLeScanner scanner; private BluetoothGatt gatt;
-    private final Map<String,BluetoothDevice> found=new ConcurrentHashMap<>();
-    private final List<String> routes=new ArrayList<>(); private final List<String> saved=new ArrayList<>();
-    private LinearLayout root,body; private TextView status,connected; private EditText routeInput;
-    private BluetoothDevice active; private boolean scanning=false;
-    private final Handler handler=new Handler(Looper.getMainLooper());
-    private final int blue=Color.rgb(18,73,132), green=Color.rgb(25,165,91);
-    private final ScanCallback scanCallback=new ScanCallback(){
-        @Override public void onScanResult(int type, ScanResult result){ BluetoothDevice d=result.getDevice(); String n=d.getName(); if(n==null)n="SENE"; found.put(d.getAddress(),d); handler.post(()->renderDevices()); }
-        @Override public void onScanFailed(int e){handler.post(()->setStatus("No se pudo buscar dispositivos BLE ("+e+")"));}
-    };
-    private final BluetoothGattCallback gattCallback=new BluetoothGattCallback(){
-        @Override public void onConnectionStateChange(BluetoothGatt g,int s,int state){
-            if(state==BluetoothProfile.STATE_CONNECTED){g.discoverServices();}
-            else if(state==BluetoothProfile.STATE_DISCONNECTED){handler.post(()->{connected.setText("Sin enlace");setStatus("Bluetooth desconectado.");});}
-        }
-        @Override public void onServicesDiscovered(BluetoothGatt g,int s){
-            BluetoothGattService svc=g.getService(SERVICE);
-            handler.post(()->{if(svc!=null){connected.setText("Enlazado con SENE");setStatus("Listo para enviar rutas.");}else setStatus("Ese dispositivo no acepta rutas SENE.");});
-        }
-    };
-    @Override public void onCreate(Bundle b){super.onCreate(b); getWindow().setStatusBarColor(blue); getWindow().setNavigationBarColor(Color.BLACK);
-        BluetoothManager bm=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE); adapter=bm.getAdapter(); if(adapter!=null)scanner=adapter.getBluetoothLeScanner();
-        getPreferences(0).getStringSet("routes",new HashSet<>()).forEach(routes::add);
-        buildUi(); requestBtPermissions();
-    }
-    private void buildUi(){
-        root=new LinearLayout(this);root.setOrientation(1);root.setBackgroundColor(Color.rgb(245,248,251));
-        TextView brand=new TextView(this);brand.setText("SENE  •  CONTROL");brand.setTextColor(Color.WHITE);brand.setTextSize(25);brand.setTypeface(null,Typeface.BOLD);brand.setGravity(17);brand.setBackgroundColor(green);brand.setPadding(12,25,12,25);root.addView(brand);
-        TextView subtitle=new TextView(this);subtitle.setText("Conecta tus dispositivos y administra tus rutas");subtitle.setTextColor(blue);subtitle.setTextSize(15);subtitle.setPadding(18,18,18,8);root.addView(subtitle);
-        connected=new TextView(this);connected.setText("Sin enlace");connected.setTextColor(blue);connected.setTextSize(16);connected.setPadding(18,8,18,8);root.addView(connected);
-        status=new TextView(this);status.setText("Activa Bluetooth en el celular.");status.setTextColor(Color.DKGRAY);status.setPadding(18,4,18,10);root.addView(status);
-        ScrollView scroll=new ScrollView(this);body=new LinearLayout(this);body.setOrientation(1);body.setPadding(16,8,16,24);scroll.addView(body);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));
-        section("MIS DISPOSITIVOS"); button("＋  Agregar dispositivo",green,()->startScan()); TextView devs=new TextView(this);devs.setTag("devs");body.addView(devs); 
-        section("MIS RUTAS"); routeInput=new EditText(this);routeInput.setHint("Escribe una ruta");routeInput.setSingleLine(true);body.addView(routeInput);
-        button("Guardar ruta",blue,()->saveRoute()); button("Enviar rutas a SENE",green,()->sendRoutes());
-        TextView list=new TextView(this);list.setTag("routes");list.setTextColor(blue);list.setTextSize(15);list.setPadding(8,12,8,12);body.addView(list);renderRoutes();
-        setContentView(root);
-    }
-    private void section(String s){TextView t=new TextView(this);t.setText(s);t.setTextColor(blue);t.setTextSize(17);t.setTypeface(null,Typeface.BOLD);t.setPadding(4,18,4,8);body.addView(t);}
-    private void button(String s,int color,Runnable r){Button b=new Button(this);b.setText(s);b.setAllCaps(false);b.setTextColor(Color.WHITE);b.setBackgroundTintList(android.content.res.ColorStateList.valueOf(color));b.setMinHeight(54);LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,7,0,7);body.addView(b,p);b.setOnClickListener(v->r.run());}
-    private void setStatus(String s){status.setText(s);}
-    private void requestBtPermissions(){if(Build.VERSION.SDK_INT>=31){if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!=PackageManager.PERMISSION_GRANTED||checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT},10);}else if(Build.VERSION.SDK_INT>=23&&checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=PackageManager.PERMISSION_GRANTED)requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},10);}
-    private void startScan(){if(adapter==null||!adapter.isEnabled()){setStatus("Activa Bluetooth en el celular.");return;}requestBtPermissions();if(scanner==null)scanner=adapter.getBluetoothLeScanner();found.clear();scanning=true;setStatus("Buscando dispositivos...");try{scanner.startScan(scanCallback);handler.postDelayed(()->{if(scanning){scanner.stopScan(scanCallback);scanning=false;setStatus(found.isEmpty()?"No se encontraron dispositivos BLE.":"Selecciona SENE cuando aparezca en la lista.");}},12000);}catch(SecurityException e){setStatus("Permiso Bluetooth requerido.");}}
-    private void renderDevices(){TextView v=(TextView)body.findViewWithTag("devs");if(v==null)return;v.setText("");for(BluetoothDevice d:found.values()){String n=d.getName();if(n==null)n="Dispositivo SENE";Button b=new Button(this);b.setText(n+"  •  "+d.getAddress());b.setAllCaps(false);v.append(n+"  "+d.getAddress()+"\n");b.setOnClickListener(x->connect(d));body.addView(b,body.indexOfChild(v)+1);}}
-    private void connect(BluetoothDevice d){try{if(gatt!=null)gatt.close();active=d;connected.setText("Conectando...");setStatus("Buscando servicios SENE...");gatt=d.connectGatt(this,false,gattCallback);}catch(SecurityException e){setStatus("Permiso Bluetooth requerido.");}}
-    private void saveRoute(){String s=routeInput.getText().toString().trim();if(s.isEmpty())return;if(routes.size()>=20){setStatus("Rutas guardadas. Maximo 20.");return;}routes.add(s);getPreferences(0).edit().putStringSet("routes",new HashSet<>(routes)).apply();routeInput.setText("");renderRoutes();setStatus("Ruta guardada.");}
-    private void renderRoutes(){TextView v=(TextView)body.findViewWithTag("routes");if(v==null)return;StringBuilder b=new StringBuilder();for(int i=0;i<routes.size();i++)b.append(i+1).append(". ").append(routes.get(i)).append("\n");v.setText(b.length()==0?"No hay rutas guardadas.":b.toString());}
-    private void sendRoutes(){if(gatt==null||gatt.getService(SERVICE)==null){setStatus("Primero enlaza con SENE.");return;}if(routes.isEmpty()){setStatus("Guarda al menos una ruta.");return;}try{BluetoothGattCharacteristic c=gatt.getService(SERVICE).getCharacteristic(TX);if(c==null){setStatus("Ese dispositivo no acepta rutas SENE.");return;}String payload=String.join(".",routes);c.setValue(payload.getBytes(StandardCharsets.UTF_8));c.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);boolean ok=gatt.writeCharacteristic(c);setStatus(ok?"Enviando rutas...":"No se pudo enviar.");}catch(SecurityException e){setStatus("Permiso Bluetooth requerido.");}}
-    @Override protected void onDestroy(){super.onDestroy();try{if(scanner!=null&&scanning)scanner.stopScan(scanCallback);if(gatt!=null)gatt.close();}catch(Exception ignored){}}
+import android.Manifest;import android.app.*;import android.bluetooth.*;import android.bluetooth.le.*;import android.content.*;import android.content.pm.PackageManager;import android.graphics.Color;import android.graphics.Typeface;import android.graphics.drawable.GradientDrawable;import android.os.*;import android.view.*;import android.widget.*;import java.nio.charset.StandardCharsets;import java.util.*;
+public class MainActivity extends Activity{
+static final UUID SERVICE=UUID.fromString("6e400001-b5a3-f393-e0a9-e50e24dcca9e"),TX=UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+BluetoothAdapter adapter;BluetoothLeScanner scanner;BluetoothGatt gatt;final Map<String,BluetoothDevice> devices=new LinkedHashMap<>();final ArrayList<String> routes=new ArrayList<>();final Handler handler=new Handler(Looper.getMainLooper());LinearLayout root,content;TextView link,status;boolean scanning=false;final int navy=0xff031031,blue=0xff0069e6,green=0xff00cd41;
+final ScanCallback scanCb=new ScanCallback(){public void onScanResult(int t,ScanResult r){BluetoothDevice d=r.getDevice();devices.put(d.getAddress(),d);handler.post(()->{if(content!=null)showDevices();});}public void onScanFailed(int e){handler.post(()->say("Error BLE: "+e));}};
+final BluetoothGattCallback gattCb=new BluetoothGattCallback(){public void onConnectionStateChange(BluetoothGatt g,int s,int state){if(state==BluetoothProfile.STATE_CONNECTED)g.discoverServices();else if(state==BluetoothProfile.STATE_DISCONNECTED)handler.post(()->{link.setText("SIN ENLACE");say("Bluetooth desconectado.");});}public void onServicesDiscovered(BluetoothGatt g,int s){boolean ok=g.getService(SERVICE)!=null;handler.post(()->{link.setText(ok?"CONECTADO A SENE":"DISPOSITIVO NO COMPATIBLE");say(ok?"Listo para recibir desde SENE.CONECT":"No se encontró el servicio SENE.");});}};
+public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(navy);getWindow().setNavigationBarColor(navy);BluetoothManager m=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE);adapter=m.getAdapter();if(adapter!=null)scanner=adapter.getBluetoothLeScanner();routes.addAll(getPreferences(0).getStringSet("routes",new HashSet<>()));requestBtPermissions();home();}
+GradientDrawable shape(int[] c,int r){GradientDrawable d=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,c);d.setCornerRadius(r);d.setStroke(2,0xff22baff);return d;}
+TextView txt(String s,int z,int c,boolean b){TextView t=new TextView(this);t.setText(s);t.setTextSize(z);t.setTextColor(c);if(b)t.setTypeface(Typeface.DEFAULT,1);return t;}
+void base(String title){root=new LinearLayout(this);root.setOrientation(1);root.setPadding(18,8,18,10);root.setBackgroundColor(navy);LinearLayout brand=new LinearLayout(this);brand.setGravity(Gravity.CENTER);brand.setOrientation(1);TextView logo=txt("SENE",42,Color.WHITE,true);logo.setLetterSpacing(.08f);brand.addView(logo);brand.addView(txt("C O N E C T",15,Color.WHITE,false));root.addView(brand,new LinearLayout.LayoutParams(-1,102));link=txt(gatt!=null&&gatt.getService(SERVICE)!=null?"CONECTADO A SENE":"LISTO PARA RECIBIR DESDE SENE.CONECT",13,Color.WHITE,true);link.setGravity(17);link.setPadding(8,12,8,12);link.setBackground(shape(new int[]{0xff087c35,0xff00c94b},30));root.addView(link);TextView h=txt(title,23,Color.WHITE,true);h.setPadding(2,12,2,8);root.addView(h);ScrollView sc=new ScrollView(this);content=new LinearLayout(this);content.setOrientation(1);sc.addView(content);root.addView(sc,new LinearLayout.LayoutParams(-1,0,1));status=txt("Sistema preparado",13,0xffc7d8f4,false);status.setPadding(4,8,4,4);root.addView(status);setContentView(root);}
+void say(String s){if(status!=null)status.setText(s);}
+void card(String a,String b,String icon,Runnable run){LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(15,16,12,16);row.setBackground(shape(new int[]{0xff006fe8,0xff00bf42},24));TextView ic=txt(icon,34,-1,true);ic.setGravity(17);row.addView(ic,new LinearLayout.LayoutParams(62,-2));View sep=new View(this);sep.setBackgroundColor(0xff24caff);LinearLayout.LayoutParams sp=new LinearLayout.LayoutParams(2,58);sp.setMargins(10,0,14,0);row.addView(sep,sp);LinearLayout labels=new LinearLayout(this);labels.setOrientation(1);labels.addView(txt(a,20,-1,true));labels.addView(txt(b,14,0xffe3efff,false));row.addView(labels,new LinearLayout.LayoutParams(0,-2,1));row.addView(txt("›",40,-1,true));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,7,0,7);content.addView(row,p);row.setOnClickListener(v->run.run());}
+void home(){base("MENÚ PRINCIPAL");card("Mis Dispositivos","Gestiona tus equipos","▣",this::devicesScreen);card("Mis Rutas","Administra tus rutas","⌖",this::routesScreen);card("Transmisión","Envía rutas a tus dispositivos","◉",this::transmitScreen);card("Configuración","Ajusta las opciones","⚙",this::settingsScreen);card("Acerca de","Información de la app","ⓘ",this::aboutScreen);}
+void back(){content.addView(btn("‹  INICIO",this::home),0);}
+Button btn(String s,Runnable r){Button b=new Button(this);b.setText(s);b.setAllCaps(false);b.setTextColor(-1);b.setBackground(shape(new int[]{0xff075fc5,0xff087c39},18));b.setOnClickListener(v->r.run());LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,6,0,6);b.setLayoutParams(p);return b;}
+void devicesScreen(){base("MIS DISPOSITIVOS");back();content.addView(btn("＋  AGREGAR DISPOSITIVO",this::startScan));content.addView(txt("Dispositivos encontrados",16,-1,true));showDevices();}
+void showDevices(){if(content==null)return;for(int i=content.getChildCount()-1;i>=0;i--)if("device".equals(content.getChildAt(i).getTag()))content.removeViewAt(i);for(BluetoothDevice d:devices.values()){String n=d.getName();if(n==null)n="Dispositivo BLE";Button b=btn(n+" • "+d.getAddress(),()->connect(d));b.setTag("device");content.addView(b);}}
+void startScan(){if(adapter==null||!adapter.isEnabled()){say("Activa Bluetooth en el teléfono.");return;}requestBtPermissions();scanner=adapter.getBluetoothLeScanner();if(scanner==null){say("No se pudo iniciar BLE.");return;}devices.clear();scanning=true;say("Buscando dispositivos BLE…");try{scanner.startScan(scanCb);handler.postDelayed(()->{if(scanning){scanner.stopScan(scanCb);scanning=false;say(devices.isEmpty()?"No se encontraron dispositivos.":"Selecciona tu equipo SENE.");}},12000);}catch(SecurityException e){say("Falta permiso Bluetooth.");}}
+void connect(BluetoothDevice d){try{if(gatt!=null)gatt.close();say("Conectando con SENE…");gatt=d.connectGatt(this,false,gattCb);}catch(SecurityException e){say("Permiso Bluetooth requerido.");}}
+void routesScreen(){base("GESTIÓN DE RUTAS");back();EditText input=new EditText(this);input.setSingleLine(true);input.setHint("Escribe el nombre de la ruta");input.setTextColor(-1);input.setHintTextColor(0xffaabbd3);content.addView(input);content.addView(btn("＋  AGREGAR RUTA",()->{String s=input.getText().toString().trim();if(s.isEmpty()){say("Escribe una ruta.");return;}if(routes.size()>=20){say("Máximo 20 rutas guardadas.");return;}routes.add(s);persist();routesScreen();say("Ruta agregada.");}));content.addView(btn("ORDENAR A-Z",()->{Collections.sort(routes,String.CASE_INSENSITIVE_ORDER);persist();routesScreen();}));renderRoutes();}
+void renderRoutes(){for(int i=0;i<routes.size();i++){final int k=i;LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setPadding(8,5,2,5);row.setBackground(shape(new int[]{0xff102e61,0xff075a42},14));row.addView(txt((i+1)+". "+routes.get(i),16,-1,true),new LinearLayout.LayoutParams(0,-2,1));row.addView(small("↑",()->move(k,-1)));row.addView(small("↓",()->move(k,1)));row.addView(small("✎",()->edit(k)));row.addView(small("×",()->remove(k)));LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(-1,-2);p.setMargins(0,4,0,4);content.addView(row,p);}}
+TextView small(String s,Runnable r){TextView t=txt(s,19,-1,true);t.setPadding(8,8,8,8);t.setOnClickListener(v->r.run());return t;}
+void persist(){getPreferences(0).edit().putStringSet("routes",new HashSet<>(routes)).apply();}
+void move(int i,int d){int j=i+d;if(j<0||j>=routes.size())return;Collections.swap(routes,i,j);persist();routesScreen();}
+void remove(int i){new AlertDialog.Builder(this).setMessage("¿Eliminar "+routes.get(i)+"?").setNegativeButton("Cancelar",null).setPositiveButton("Eliminar",(a,b)->{routes.remove(i);persist();routesScreen();}).show();}
+void edit(int i){EditText e=new EditText(this);e.setText(routes.get(i));new AlertDialog.Builder(this).setTitle("Editar ruta").setView(e).setNegativeButton("Cancelar",null).setPositiveButton("Guardar",(a,b)->{String s=e.getText().toString().trim();if(!s.isEmpty()){routes.set(i,s);persist();routesScreen();}}).show();}
+void transmitScreen(){base("TRANSMISIÓN");back();content.addView(txt("Rutas guardadas: "+routes.size()+" / 20",17,-1,true));content.addView(btn("ENVIAR RUTAS A SENE",this::sendRoutes));}
+void sendRoutes(){if(gatt==null||gatt.getService(SERVICE)==null){say("Primero enlaza con SENE.");return;}if(routes.isEmpty()){say("No hay rutas guardadas.");return;}try{BluetoothGattCharacteristic c=gatt.getService(SERVICE).getCharacteristic(TX);if(c==null){say("Característica de envío no encontrada.");return;}c.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);c.setValue(String.join(".",routes).getBytes(StandardCharsets.UTF_8));say(gatt.writeCharacteristic(c)?"Envío solicitado.":"No se pudo iniciar el envío.");}catch(SecurityException e){say("Permiso Bluetooth requerido.");}}
+void settingsScreen(){base("CONFIGURACIÓN");back();content.addView(txt("Límite: 20 rutas. Servicio BLE y formato de envío original conservados.",16,-1,false));content.addView(btn("BORRAR TODAS LAS RUTAS",()->new AlertDialog.Builder(this).setMessage("¿Borrar todas las rutas?").setNegativeButton("Cancelar",null).setPositiveButton("Borrar",(a,b)->{routes.clear();persist();routesScreen();}).show()));}
+void aboutScreen(){base("ACERCA DE");back();content.addView(txt("SENE CONECT\nControl de rutas y guías SENE\nBluetooth BLE",18,-1,false));}
+void requestBtPermissions(){if(Build.VERSION.SDK_INT>=31){if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!=0||checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=0)requestPermissions(new String[]{Manifest.permission.BLUETOOTH_SCAN,Manifest.permission.BLUETOOTH_CONNECT},10);}else if(Build.VERSION.SDK_INT>=23&&checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=0)requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION},10);}
+protected void onDestroy(){super.onDestroy();try{if(scanner!=null&&scanning)scanner.stopScan(scanCb);if(gatt!=null)gatt.close();}catch(Exception ignored){}}
 }

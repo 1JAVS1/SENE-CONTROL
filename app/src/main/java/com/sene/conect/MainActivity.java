@@ -39,32 +39,138 @@ public class MainActivity extends Activity {
  private void title(LinearLayout p,String a,String b){p.addView(txt(a,16,INK,true),lp(-1,-2,0,0,0,3));p.addView(txt(b,12,MUTED,false),lp(-1,-2,0,0,0,9));}
 
  private void render(){
-  deviceWindow=false;FrameLayout base=screenRoot();
-  base.setBackground(new GradientDrawable(GradientDrawable.Orientation.TL_BR,new int[]{Color.rgb(4,18,38),Color.rgb(5,43,66),Color.rgb(3,17,34)}));
-  LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setPadding(dp(20),dp(12),dp(20),dp(14));base.addView(page,new FrameLayout.LayoutParams(-1,-1));
-  LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);
-  TextView clock=txt(new java.text.SimpleDateFormat("HH:mm",Locale.getDefault()).format(new Date()),13,Color.WHITE,true);top.addView(clock,new LinearLayout.LayoutParams(0,-2,1));
-  boolean linked=gatt!=null&&writeChar!=null;TextView bt=txt("●  "+(linked?"CONECTADO":"SIN CONEXIÓN"),11,linked?Color.rgb(41,255,0):Color.rgb(255,190,90),true);
-  bt.setPadding(dp(12),dp(8),dp(12),dp(8));GradientDrawable pill=new GradientDrawable();pill.setColor(Color.argb(30,41,255,0));pill.setCornerRadius(dp(30));pill.setStroke(dp(1),linked?Color.rgb(41,255,0):Color.rgb(255,190,90));bt.setBackground(pill);top.addView(bt);page.addView(top,lp(-1,-2,0,4,0,18));
-  LinearLayout brand=new LinearLayout(this);brand.setGravity(Gravity.CENTER_VERTICAL);ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.sene_logo);logo.setScaleType(ImageView.ScaleType.FIT_CENTER);brand.addView(logo,new LinearLayout.LayoutParams(dp(62),dp(62)));
-  brand.addView(txt("SENE ",25,Color.WHITE,true));brand.addView(txt("CONECT",25,Color.rgb(41,255,0),true));page.addView(brand,lp(-1,-2,0,0,0,5));
-  TextView tagline=txt("TU GUÍA, SIEMPRE EN RUTA",10,Color.rgb(180,215,230),true);tagline.setLetterSpacing(.16f);page.addView(tagline,lp(-1,-2,dp(4),0,0,22));
-  TextView section=txt("MENÚ PRINCIPAL",12,Color.rgb(180,215,230),true);section.setLetterSpacing(.12f);page.addView(section,lp(-1,-2,0,0,0,12));
-  ScrollView sc=new ScrollView(this);LinearLayout list=new LinearLayout(this);list.setOrientation(1);sc.addView(list);
-  addHomeCard(list,"▣","MIS DISPOSITIVOS","Conecta y administra tu controlador",()->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});
-  addHomeCard(list,"⌖","RUTAS","Agrega, organiza y selecciona destinos",()->renderWorkspace());
-  addHomeCard(list,"▥","TRANSMISIÓN","Envía las rutas seleccionadas a tu guía",()->sendRoutes());
-  addHomeCard(list,"⚙","CONFIGURACIÓN","Ajustes de conexión Bluetooth",()->{try{startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));}catch(Exception e){status("No se pudieron abrir los ajustes Bluetooth.");}});
-  addHomeCard(list,"ⓘ","INFORMACIÓN","Acerca de SENE CONECT",()->new android.app.AlertDialog.Builder(this).setTitle("SENE CONECT").setMessage("Control de guías SENE mediante Bluetooth BLE.\n\nAdministra tus dispositivos y transmite rutas guardadas.").setPositiveButton("ACEPTAR",null).show());
-  page.addView(sc,new LinearLayout.LayoutParams(-1,0,1));TextView footer=txt("S E N E",12,Color.rgb(190,220,230),true);footer.setGravity(Gravity.CENTER);page.addView(footer,lp(-1,dp(30),8,0));setContentView(base);
- }
- private void addHomeCard(LinearLayout parent,String symbol,String heading,String detail,Runnable action){
-  LinearLayout card=new LinearLayout(this);card.setGravity(Gravity.CENTER_VERTICAL);card.setPadding(dp(16),dp(13),dp(13),dp(13));
-  GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(14,75,255),Color.rgb(20,125,150),Color.rgb(35,180,70)});bg.setCornerRadius(dp(20));bg.setStroke(dp(1),Color.argb(95,255,255,255));card.setBackground(bg);card.setElevation(dp(7));
-  TextView ico=txt(symbol,30,Color.WHITE,true);ico.setGravity(Gravity.CENTER);card.addView(ico,new LinearLayout.LayoutParams(dp(48),dp(52)));
-  LinearLayout labels=new LinearLayout(this);labels.setOrientation(1);labels.setPadding(dp(12),0,0,0);labels.addView(txt(heading,14,Color.WHITE,true));labels.addView(txt(detail,11,Color.argb(220,255,255,255),false));card.addView(labels,new LinearLayout.LayoutParams(0,-2,1));card.addView(txt("›",30,Color.WHITE,true));card.setOnClickListener(v->action.run());parent.addView(card,lp(-1,-2,0,0,0,15));
+  deviceWindow=false;
+  getWindow().setStatusBarColor(Color.rgb(2,11,42));
+  getWindow().setNavigationBarColor(Color.rgb(2,11,42));
+  FrameLayout base=new FrameLayout(this);
+  base.setBackgroundColor(Color.rgb(2,11,42));
+  base.addView(new NeonWavesView(),new FrameLayout.LayoutParams(-1,-1));
+  LinearLayout page=new LinearLayout(this);page.setOrientation(1);
+  page.setPadding(dp(18),dp(10),dp(18),dp(8));
+  page.setBackgroundColor(Color.TRANSPARENT);
+  base.addView(page,new FrameLayout.LayoutParams(-1,-1));
+
+  LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
+  BrandLogoView brand=new BrandLogoView();
+  header.addView(brand,new LinearLayout.LayoutParams(0,dp(112),1));
+  BluetoothBadgeView bluetooth=new BluetoothBadgeView();
+  header.addView(bluetooth,new LinearLayout.LayoutParams(dp(150),dp(112)));
+  page.addView(header,lp(-1,dp(112),0,2,0,dp(8)));
+
+  TextView section=txt("MENÚ PRINCIPAL",11,Color.rgb(150,207,235),true);
+  section.setLetterSpacing(.18f);
+  page.addView(section,lp(-1,-2,0,0,0,dp(10)));
+
+  ScrollView sc=new ScrollView(this);sc.setFillViewport(false);sc.setClipToPadding(false);
+  sc.setVerticalScrollBarEnabled(false);
+  LinearLayout list=new LinearLayout(this);list.setOrientation(1);list.setClipChildren(false);list.setClipToPadding(false);
+  sc.addView(list,new ScrollView.LayoutParams(-1,-2));
+  addHomeCard(list,0,"MIS DISPOSITIVOS","Gestiona tus equipos",()->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});
+  addHomeCard(list,1,"MIS RUTAS","Administra tus rutas",()->renderWorkspace());
+  addHomeCard(list,2,"TRANSMISIÓN","Envía rutas a tus dispositivos",()->sendRoutes());
+  addHomeCard(list,3,"CONFIGURACIÓN","Ajusta las opciones",()->{try{startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));}catch(Exception e){status("No se pudieron abrir los ajustes Bluetooth.");}});
+  addHomeCard(list,4,"ACERCA DE","Información de la app",()->new android.app.AlertDialog.Builder(this).setTitle("SENE CONECT").setMessage("Control de guías SENE mediante Bluetooth BLE.\\n\\nAdministra tus dispositivos y transmite rutas guardadas.").setPositiveButton("ACEPTAR",null).show());
+  page.addView(sc,new LinearLayout.LayoutParams(-1,0,1));
+
+  LinearLayout footer=new LinearLayout(this);footer.setGravity(Gravity.CENTER_VERTICAL);
+  View leftGreen=new View(this);leftGreen.setBackgroundColor(Color.rgb(51,255,0));
+  View leftBlue=new View(this);leftBlue.setBackgroundColor(Color.rgb(13,95,255));
+  TextView footerText=txt("SENE",17,Color.WHITE,true);footerText.setTypeface(Typeface.create("sans-serif",Typeface.BOLD_ITALIC));footerText.setGravity(Gravity.CENTER);
+  View rightGreen=new View(this);rightGreen.setBackgroundColor(Color.rgb(51,255,0));
+  View rightBlue=new View(this);rightBlue.setBackgroundColor(Color.rgb(13,95,255));
+  LinearLayout leftLines=new LinearLayout(this);leftLines.setOrientation(1);leftLines.addView(leftGreen,new LinearLayout.LayoutParams(-1,dp(2)));leftLines.addView(leftBlue,lp(-1,dp(2),dp(4),0));
+  LinearLayout rightLines=new LinearLayout(this);rightLines.setOrientation(1);rightLines.addView(rightGreen,new LinearLayout.LayoutParams(-1,dp(2)));rightLines.addView(rightBlue,lp(-1,dp(2),dp(4),0));
+  footer.addView(leftLines,new LinearLayout.LayoutParams(0,dp(10),1));footer.addView(footerText,new LinearLayout.LayoutParams(dp(74),-2));footer.addView(rightLines,new LinearLayout.LayoutParams(0,dp(10),1));
+  page.addView(footer,lp(-1,dp(26),dp(6),0));
+  setContentView(base);
  }
 
+ private void addHomeCard(LinearLayout parent,int icon,String heading,String detail,Runnable action){
+  LinearLayout card=new LinearLayout(this);card.setGravity(Gravity.CENTER_VERTICAL);
+  card.setOrientation(0);card.setPadding(dp(12),dp(9),dp(12),dp(9));
+  GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,
+   new int[]{Color.rgb(13,95,255),Color.rgb(18,160,150),Color.rgb(51,255,0)});
+  bg.setCornerRadius(dp(24));bg.setStroke(dp(1),Color.argb(210,170,255,205));
+  card.setBackground(bg);card.setElevation(dp(9));
+  card.setLayerType(View.LAYER_TYPE_SOFTWARE,null);
+  MenuIconView glyph=new MenuIconView(icon);
+  card.addView(glyph,new LinearLayout.LayoutParams(dp(54),dp(54)));
+  View separator=new View(this);separator.setBackgroundColor(Color.argb(190,230,255,255));
+  LinearLayout.LayoutParams sepLp=new LinearLayout.LayoutParams(dp(1),dp(42));sepLp.setMargins(dp(9),0,dp(12),0);card.addView(separator,sepLp);
+  LinearLayout labels=new LinearLayout(this);labels.setOrientation(1);labels.setGravity(Gravity.CENTER_VERTICAL);
+  TextView title=txt(heading,15,Color.WHITE,true);title.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));
+  TextView subtitle=txt(detail,11,Color.rgb(235,245,245),false);
+  labels.addView(title);labels.addView(subtitle,lp(-1,-2,dp(3),0));
+  card.addView(labels,new LinearLayout.LayoutParams(0,-2,1));
+  TextView arrow=txt("›",34,Color.WHITE,true);arrow.setGravity(Gravity.CENTER);
+  card.addView(arrow,new LinearLayout.LayoutParams(dp(28),-1));
+  card.setOnClickListener(v->action.run());
+  parent.addView(card,lp(-1,dp(76),0,0,0,dp(12)));
+ }
+
+ private class NeonWavesView extends View {
+  private final Paint p=new Paint(3);
+  NeonWavesView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_SOFTWARE,null);}
+  @Override protected void onDraw(Canvas c){
+   super.onDraw(c);float w=getWidth(),h=getHeight();
+   p.setShader(new LinearGradient(0,0,w,h,new int[]{Color.rgb(2,11,42),Color.rgb(3,23,57),Color.rgb(1,13,38)},null,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,p);p.setShader(null);
+   for(int i=0;i<7;i++){
+    float y=h*(.23f+i*.105f);
+    Path path=new Path();path.moveTo(-w*.1f,y);
+    path.cubicTo(w*.18f,y-h*.22f,w*.34f,y+h*.24f,w*.58f,y-h*.03f);
+    path.cubicTo(w*.78f,y-h*.25f,w*.9f,y+h*.15f,w*1.12f,y-h*.08f);
+    p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(i%2==0?dp(2.2f):dp(1.2f));
+    p.setColor(i%2==0?Color.rgb(0,145,255):Color.rgb(51,255,0));
+    p.setAlpha(i%2==0?105:80);p.setMaskFilter(new BlurMaskFilter(dp(i%2==0?10:7),BlurMaskFilter.Blur.OUTER));c.drawPath(path,p);
+    p.setMaskFilter(null);p.setAlpha(i%2==0?170:135);p.setStrokeWidth(dp(1));c.drawPath(path,p);
+   }
+   p.setStyle(Paint.Style.FILL);p.setAlpha(255);
+   p.setColor(Color.argb(24,0,220,255));c.drawCircle(w*.08f,h*.75f,dp(95),p);
+   p.setColor(Color.argb(18,51,255,0));c.drawCircle(w*.94f,h*.28f,dp(105),p);
+  }
+ }
+
+ private class BrandLogoView extends View {
+  private final Paint p=new Paint(3);
+  BrandLogoView(){super(MainActivity.this);}
+  @Override protected void onDraw(Canvas c){
+   super.onDraw(c);float w=getWidth(),h=getHeight();
+   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3));p.setColor(Color.rgb(51,255,0));p.setShadowLayer(dp(12),0,0,Color.rgb(51,255,0));
+   RectF oval=new RectF(dp(3),dp(10),w-dp(8),h-dp(13));c.drawArc(oval,205,305,false,p);p.clearShadowLayer();
+   p.setStyle(Paint.Style.FILL);p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD_ITALIC));p.setTextSize(dp(36));c.drawText("SENE",dp(14),h*.56f,p);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(15));c.drawText("CONECT",dp(20),h*.78f,p);
+  }
+ }
+
+ private class BluetoothBadgeView extends View {
+  private final Paint p=new Paint(3);
+  BluetoothBadgeView(){super(MainActivity.this);}
+  @Override protected void onDraw(Canvas c){
+   super.onDraw(c);float cx=getWidth()/2f,cy=dp(38),r=dp(28);
+   p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(0,85,210));p.setShadowLayer(dp(15),0,0,Color.rgb(0,125,255));c.drawCircle(cx,cy,r,p);p.clearShadowLayer();
+   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2.8f));p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);p.setColor(Color.WHITE);
+   Path b=new Path();b.moveTo(cx,cy-dp(17));b.lineTo(cx,cy+dp(17));b.moveTo(cx,cy-dp(17));b.lineTo(cx+dp(11),cy-dp(7));b.lineTo(cx-dp(11),cy+dp(9));b.moveTo(cx,cy+dp(17));b.lineTo(cx+dp(11),cy+dp(7));b.lineTo(cx-dp(11),cy-dp(9));c.drawPath(b,p);
+   p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(51,255,0));c.drawCircle(cx+dp(22),cy+dp(19),dp(9),p);
+   p.setColor(Color.rgb(0,40,30));p.setStrokeWidth(dp(2));p.setStyle(Paint.Style.STROKE);Path check=new Path();check.moveTo(cx+dp(17),cy+dp(19));check.lineTo(cx+dp(21),cy+dp(23));check.lineTo(cx+dp(27),cy+dp(15));c.drawPath(check,p);
+   p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(51,255,0));p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(8));String s="LISTO PARA RECIBIR";c.drawText(s,cx-p.measureText(s)/2,dp(82),p);String s2="DESDE SENE.CONECT";c.drawText(s2,cx-p.measureText(s2)/2,dp(93),p);
+  }
+ }
+
+ private class MenuIconView extends View {
+  private final int kind;private final Paint p=new Paint(3);
+  MenuIconView(int k){super(MainActivity.this);kind=k;}
+  private void line(Canvas c,float... xy){Path q=new Path();q.moveTo(xy[0],xy[1]);for(int i=2;i<xy.length;i+=2)q.lineTo(xy[i],xy[i+1]);c.drawPath(q,p);}
+  @Override protected void onDraw(Canvas c){
+   super.onDraw(c);c.save();c.translate(getWidth()/2f,getHeight()/2f);float u=dp(1);
+   p.setColor(Color.WHITE);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(2));p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);
+   if(kind==0){c.drawRoundRect(-dp(19),-dp(15),dp(15),dp(10),dp(3),dp(3),p);line(c,-dp(8),dp(15),dp(5),dp(15),dp(1),dp(10));c.drawArc(-dp(13),-dp(23),dp(11),dp(1),215,110,false,p);c.drawArc(-dp(8),-dp(18),dp(6),-dp(4),220,100,false,p);p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(51,255,0));c.drawCircle(dp(18),-dp(15),dp(3),p);}
+   else if(kind==1){Path m=new Path();m.moveTo(-dp(19),-dp(13));m.lineTo(-dp(3),-dp(18));m.lineTo(dp(5),-dp(13));m.lineTo(dp(19),-dp(17));m.lineTo(dp(19),dp(12));m.lineTo(dp(5),dp(17));m.lineTo(-dp(3),dp(12));m.lineTo(-dp(19),dp(16));m.close();c.drawPath(m,p);line(c,-dp(3),-dp(18),-dp(3),dp(12));line(c,dp(5),-dp(13),dp(5),dp(17));p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(51,255,0));c.drawCircle(dp(5),-dp(4),dp(5),p);}
+   else if(kind==2){c.drawCircle(0,-dp(9),dp(4),p);line(c,0,-dp(5),0,dp(16));line(c,-dp(12),dp(16),dp(12),dp(16));c.drawArc(-dp(15),-dp(24),dp(15),dp(6),205,130,false,p);c.drawArc(-dp(22),-dp(30),dp(22),dp(12),205,130,false,p);}
+   else if(kind==3){c.drawCircle(0,0,dp(8),p);for(int i=0;i<8;i++){c.save();c.rotate(i*45);c.drawRoundRect(-dp(3),-dp(22),dp(3),-dp(14),dp(2),dp(2),p);c.restore();}p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(51,255,0));c.drawCircle(0,0,dp(3),p);}
+   else {c.drawCircle(0,0,dp(18),p);p.setStyle(Paint.Style.FILL);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(25));p.setColor(Color.WHITE);c.drawText("i",-dp(3.5f),dp(9),p);}
+   c.restore();
+  }
+ }
  private void renderWorkspace(){
   deviceWindow=false;
   FrameLayout base=screenRoot();

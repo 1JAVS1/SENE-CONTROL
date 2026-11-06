@@ -173,8 +173,8 @@ public class MainActivity extends Activity {
   @Override protected void onDraw(Canvas c){
    super.onDraw(c);float w=getWidth(),h=getHeight(),cx=w*.5f,cy=h*.48f;
    c.save();c.scale(w/300f,h/200f);
-   // Fondo magenta y óvalo horizontal como en la referencia PNG.
-   p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(255,0,220));c.drawOval(5,5,295,195,p);
+   // Fondo azul profundo, integrado con el fondo principal de la aplicación.
+   p.setStyle(Paint.Style.FILL);p.setShader(new LinearGradient(5,5,295,195,new int[]{Color.rgb(2,11,42),Color.rgb(5,42,91),Color.rgb(3,23,57)},null,Shader.TileMode.CLAMP));c.drawOval(5,5,295,195,p);p.setShader(null);
    p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(5);
    p.setShader(new LinearGradient(5,10,295,190,Color.rgb(13,95,255),Color.rgb(0,230,65),Shader.TileMode.CLAMP));
    c.drawOval(5,5,295,195,p);p.setShader(null);

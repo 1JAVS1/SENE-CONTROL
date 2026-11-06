@@ -3,16 +3,32 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <path android:fillColor="#020B2A" android:pathData="M0,0h108v108h-108z"/>
-    <path android:fillColor="#00000000" android:strokeColor="#33FF00" android:strokeWidth="3.6"
-        android:pathData="M54,17 C83,17 105,33 105,54 C105,75 83,91 54,91 C25,91 3,75 3,54 C3,33 25,17 54,17Z"/>
-    <!-- SENE, centered and reduced to leave clear space inside the oval -->
-    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="2.25"
-        android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M39,42 L31,42 L29,45.5 L37,48 L38,51.5 L30,52.5 M44,42 V53 M44,42 H52 M44,47.5 H50.5 M44,53 H52 M57,53 V42 L65,53 V42 M70,42 V53 H78 M70,42 H78 M70,47.5 H76.5"/>
-    <path android:fillColor="#FFFFFF" android:pathData="M82.5,51.5 m-1.25,0 a1.25,1.25 0,1 0,2.5 0 a1.25,1.25 0,1 0,-2.5 0"/>
-    <!-- CONECT, same white color and optically centered -->
-    <path android:fillColor="#00000000" android:strokeColor="#FFFFFF" android:strokeWidth="1.55"
-        android:strokeLineCap="round" android:strokeLineJoin="round"
-        android:pathData="M29,62 H25 L23,64.5 V69.5 L25,72 H29 M37,62 H33 L31,64.5 V69.5 L33,72 H37 L39,69.5 V64.5 Z M43,72 V62 L50,72 V62 M55,62 V72 H62 M55,62 H62 M55,67 H60.5 M67,62 H74 M70.5,62 V72 M80,62 H76 L74,64.5 V69.5 L76,72 H80 M85,62 H94 M89.5,62 V72"/>
+    <!-- Transparent outside: both the navy background and green outline are oval -->
+    <path
+        android:fillColor="#020B2A"
+        android:pathData="M54,23 C83,23 105,36 105,54 C105,72 83,85 54,85 C25,85 3,72 3,54 C3,36 25,23 54,23 Z" />
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#33FF00"
+        android:strokeWidth="3"
+        android:pathData="M54,23 C83,23 105,36 105,54 C105,72 83,85 54,85 C25,85 3,72 3,54 C3,36 25,23 54,23 Z" />
+    <!-- Exact wording: SENE.CONECT, in clear white uppercase lettering -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M28,51 H24 L23,53.5 H27 L28,57.5 H23
+            M29.5,51 H34 V60 H29.5 M29.5,55.5 H33.5
+            M35.5,60 V51 L40.5,60 V51
+            M42,51 H46.5 V60 H42 M42,55.5 H46
+            M49,59.5 L49,60
+            M56,52 H53 L51,54 V57 L53,59 H56
+            M57.5,51 H61 L63,53 V58 L61,60 H57.5 L55.5,58 V53 Z
+            M64.5,60 V51 L69.5,60 V51
+            M71,51 H75.5 V60 H71 M71,55.5 H75
+            M84,52 H81 L79,54 V57 L81,59 H84
+            M85,51 H90.5 M87.75,51 V60" />
 </vector>

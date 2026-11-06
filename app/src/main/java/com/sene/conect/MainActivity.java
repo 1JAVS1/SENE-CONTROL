@@ -7,7 +7,7 @@ import android.bluetooth.*;
 import android.bluetooth.le.*;
 import android.content.*;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
+import android.graphics.*;
 import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Bitmap;
@@ -32,6 +32,7 @@ public class MainActivity extends Activity {
  @Override public void onCreate(Bundle b){super.onCreate(b);getWindow().setStatusBarColor(NAVY);getWindow().setNavigationBarColor(NAVY);prefs=getSharedPreferences("sene",MODE_PRIVATE);loadRoutes();BluetoothManager m=(BluetoothManager)getSystemService(BLUETOOTH_SERVICE);adapter=m==null?null:m.getAdapter();render();if(adapter==null)status("Este celular no tiene Bluetooth BLE.");else if(!adapter.isEnabled())status("Activa Bluetooth en el celular.");}
  private void permissions(){ArrayList<String> p=new ArrayList<>();if(Build.VERSION.SDK_INT>=31){if(checkSelfPermission(Manifest.permission.BLUETOOTH_SCAN)!=0)p.add(Manifest.permission.BLUETOOTH_SCAN);if(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT)!=0)p.add(Manifest.permission.BLUETOOTH_CONNECT);}else if(Build.VERSION.SDK_INT>=23&&checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)!=0)p.add(Manifest.permission.ACCESS_FINE_LOCATION);if(!p.isEmpty())requestPermissions(p.toArray(new String[0]),41);}
  private int dp(int n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
+  private int dp(float n){return (int)(n*getResources().getDisplayMetrics().density+.5f);}
  private GradientDrawable shape(int color,int r){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(r));return d;}
  private LinearLayout.LayoutParams lp(int w,int h,int l,int t,int r,int b){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(w,h);p.setMargins(dp(l),dp(t),dp(r),dp(b));return p;}
  private LinearLayout.LayoutParams lp(int w,int h,int top,int bottom){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(w,h);p.setMargins(0,dp(top),0,dp(bottom));return p;}

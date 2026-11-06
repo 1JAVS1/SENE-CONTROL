@@ -37,10 +37,39 @@ public class MainActivity extends Activity {
  private FrameLayout screenRoot(){FrameLayout frame=new FrameLayout(this);frame.setBackgroundColor(NAVY);ImageView watermark=new ImageView(this);Bitmap original=BitmapFactory.decodeResource(getResources(),R.drawable.sene_logo);Bitmap smoothLogo=Bitmap.createScaledBitmap(original,1024,640,true);watermark.setImageBitmap(smoothLogo);if(original!=smoothLogo)original.recycle();watermark.setScaleType(ImageView.ScaleType.FIT_CENTER);watermark.setAlpha(0.065f);FrameLayout.LayoutParams wm=new FrameLayout.LayoutParams(dp(320),dp(200),Gravity.CENTER);watermark.setAlpha(0.065f);frame.addView(watermark,wm);return frame;}
  private LinearLayout card(){LinearLayout c=new LinearLayout(this);c.setOrientation(1);c.setPadding(dp(18),dp(18),dp(18),dp(18));c.setBackground(shape(Color.WHITE,22));c.setElevation(dp(2));return c;}
  private void title(LinearLayout p,String a,String b){p.addView(txt(a,16,INK,true),lp(-1,-2,0,0,0,3));p.addView(txt(b,12,MUTED,false),lp(-1,-2,0,0,0,9));}
+
  private void render(){
+  deviceWindow=false;FrameLayout base=screenRoot();
+  base.setBackground(new GradientDrawable(GradientDrawable.Orientation.TL_BR,new int[]{Color.rgb(4,18,38),Color.rgb(5,43,66),Color.rgb(3,17,34)}));
+  LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setPadding(dp(20),dp(12),dp(20),dp(14));base.addView(page,new FrameLayout.LayoutParams(-1,-1));
+  LinearLayout top=new LinearLayout(this);top.setGravity(Gravity.CENTER_VERTICAL);
+  TextView clock=txt(new java.text.SimpleDateFormat("HH:mm",Locale.getDefault()).format(new Date()),13,Color.WHITE,true);top.addView(clock,new LinearLayout.LayoutParams(0,-2,1));
+  boolean linked=gatt!=null&&writeChar!=null;TextView bt=txt("●  "+(linked?"CONECTADO":"SIN CONEXIÓN"),11,linked?Color.rgb(41,255,0):Color.rgb(255,190,90),true);
+  bt.setPadding(dp(12),dp(8),dp(12),dp(8));GradientDrawable pill=new GradientDrawable();pill.setColor(Color.argb(30,41,255,0));pill.setCornerRadius(dp(30));pill.setStroke(dp(1),linked?Color.rgb(41,255,0):Color.rgb(255,190,90));bt.setBackground(pill);top.addView(bt);page.addView(top,lp(-1,-2,0,4,0,18));
+  LinearLayout brand=new LinearLayout(this);brand.setGravity(Gravity.CENTER_VERTICAL);ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.sene_logo);logo.setScaleType(ImageView.ScaleType.FIT_CENTER);brand.addView(logo,new LinearLayout.LayoutParams(dp(62),dp(62)));
+  brand.addView(txt("SENE ",25,Color.WHITE,true));brand.addView(txt("CONECT",25,Color.rgb(41,255,0),true));page.addView(brand,lp(-1,-2,0,0,0,5));
+  TextView tagline=txt("TU GUÍA, SIEMPRE EN RUTA",10,Color.rgb(180,215,230),true);tagline.setLetterSpacing(.16f);page.addView(tagline,lp(-1,-2,dp(4),0,0,22));
+  TextView section=txt("MENÚ PRINCIPAL",12,Color.rgb(180,215,230),true);section.setLetterSpacing(.12f);page.addView(section,lp(-1,-2,0,0,0,12));
+  ScrollView sc=new ScrollView(this);LinearLayout list=new LinearLayout(this);list.setOrientation(1);sc.addView(list);
+  addHomeCard(list,"▣","MIS DISPOSITIVOS","Conecta y administra tu controlador",()->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});
+  addHomeCard(list,"⌖","RUTAS","Agrega, organiza y selecciona destinos",()->renderWorkspace());
+  addHomeCard(list,"▥","TRANSMISIÓN","Envía las rutas seleccionadas a tu guía",()->sendRoutes());
+  addHomeCard(list,"⚙","CONFIGURACIÓN","Ajustes de conexión Bluetooth",()->{try{startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));}catch(Exception e){status("No se pudieron abrir los ajustes Bluetooth.");}});
+  addHomeCard(list,"ⓘ","INFORMACIÓN","Acerca de SENE CONECT",()->new android.app.AlertDialog.Builder(this).setTitle("SENE CONECT").setMessage("Control de guías SENE mediante Bluetooth BLE.\n\nAdministra tus dispositivos y transmite rutas guardadas.").setPositiveButton("ACEPTAR",null).show());
+  page.addView(sc,new LinearLayout.LayoutParams(-1,0,1));TextView footer=txt("S E N E",12,Color.rgb(190,220,230),true);footer.setGravity(Gravity.CENTER);page.addView(footer,lp(-1,dp(30),8,0));setContentView(base);
+ }
+ private void addHomeCard(LinearLayout parent,String symbol,String heading,String detail,Runnable action){
+  LinearLayout card=new LinearLayout(this);card.setGravity(Gravity.CENTER_VERTICAL);card.setPadding(dp(16),dp(13),dp(13),dp(13));
+  GradientDrawable bg=new GradientDrawable(GradientDrawable.Orientation.LEFT_RIGHT,new int[]{Color.rgb(14,75,255),Color.rgb(20,125,150),Color.rgb(35,180,70)});bg.setCornerRadius(dp(20));bg.setStroke(dp(1),Color.argb(95,255,255,255));card.setBackground(bg);card.setElevation(dp(7));
+  TextView ico=txt(symbol,30,Color.WHITE,true);ico.setGravity(Gravity.CENTER);card.addView(ico,new LinearLayout.LayoutParams(dp(48),dp(52)));
+  LinearLayout labels=new LinearLayout(this);labels.setOrientation(1);labels.setPadding(dp(12),0,0,0);labels.addView(txt(heading,14,Color.WHITE,true));labels.addView(txt(detail,11,Color.argb(220,255,255,255),false));card.addView(labels,new LinearLayout.LayoutParams(0,-2,1));card.addView(txt("›",30,Color.WHITE,true));card.setOnClickListener(v->action.run());parent.addView(card,lp(-1,-2,0,0,0,15));
+ }
+
+ private void renderWorkspace(){
   deviceWindow=false;
   FrameLayout base=screenRoot();
   ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(Color.TRANSPARENT);LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setBackgroundColor(Color.TRANSPARENT);page.setPadding(dp(18),dp(16),dp(18),dp(28));scroll.addView(page);base.addView(scroll,new FrameLayout.LayoutParams(-1,-1));setContentView(base);
+  TextView back=txt("‹  MENÚ PRINCIPAL",13,Color.WHITE,true);back.setPadding(dp(4),dp(2),0,dp(10));back.setOnClickListener(v->render());page.addView(back,lp(-1,-2,0,0,0,8));
   LinearLayout hero=card();hero.setOrientation(0);hero.setGravity(Gravity.CENTER_VERTICAL);hero.setPadding(dp(16),dp(14),dp(16),dp(14));
   ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.sene_logo);logo.setScaleType(ImageView.ScaleType.CENTER_CROP);logo.setBackground(shape(Color.WHITE,100));logo.setClipToOutline(true);logo.setPadding(dp(2),dp(2),dp(2),dp(2));hero.addView(logo,new LinearLayout.LayoutParams(dp(68),dp(68)));
   LinearLayout brand=new LinearLayout(this);brand.setOrientation(1);brand.setPadding(dp(13),0,0,0);brand.addView(txt("SENE.CONECT",24,INK,true));brand.addView(txt("TU GUÍA, SIEMPRE EN RUTA",10,CYAN,true));hero.addView(brand,new LinearLayout.LayoutParams(0,-2,1));page.addView(hero,lp(-1,-2,0,4,0,14));

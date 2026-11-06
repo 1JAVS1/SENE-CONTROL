@@ -78,6 +78,7 @@ public class MainActivity extends Activity {
 
   LinearLayout header=new LinearLayout(this);header.setGravity(Gravity.CENTER_VERTICAL);
   BrandLogoView brand=new BrandLogoView();
+  brand.setOnClickListener(v->showBrandThanks(base));
   header.addView(brand,new LinearLayout.LayoutParams(0,dp(112),1));
   BluetoothBadgeView bluetooth=new BluetoothBadgeView();
   header.addView(bluetooth,new LinearLayout.LayoutParams(dp(150),dp(112)));
@@ -172,6 +173,42 @@ public class MainActivity extends Activity {
   }
  }
 
+ private void showBrandThanks(FrameLayout base){
+  BrandThanksView thanks=new BrandThanksView(()->{base.removeView(base.findViewWithTag("sene_thanks"));});
+  thanks.setTag("sene_thanks");
+  FrameLayout.LayoutParams overlay=new FrameLayout.LayoutParams(-1,-1);
+  base.addView(thanks,overlay);
+ }
+ private class BrandThanksView extends View {
+  private final Paint p=new Paint(3);
+  private final Runnable dismiss;
+  private final Handler anim=new Handler(Looper.getMainLooper());
+  private int step=0;
+  private long started=System.currentTimeMillis();
+  private final String[] titles={"¡GRACIAS POR ELEGIR SENE!","TU CONFIANZA NOS IMPULSA","CADA RUTA COMIENZA CON UN SUEÑO","LA TECNOLOGÍA NOS CONECTA","SIGAMOS ABRIENDO CAMINOS","HECHO PARA AVANZAR CONTIGO","¡ESTO APENAS COMIENZA!"};
+  private final String[] notes={"Tu preferencia le da vida a nuestra marca.\nGracias por ser parte de esta historia.","Detrás de SENE hay ideas, esfuerzo y pasión\npor hacer que cada viaje sea mejor.","Que nunca falten destinos por descubrir\nni motivos para seguir creciendo.","Innovamos para acercarte a tus metas\ny hacer más sencillo cada recorrido.","Tu apoyo nos inspira a crear, mejorar\ny llegar cada vez más lejos.","Gracias por confiar en nuestro trabajo.\nVamos contigo, kilómetro a kilómetro.","SENE CONECT · Conectando ideas,\nimpulsando caminos. ¡Gracias!"};
+  private final Runnable frame= new Runnable(){public void run(){if(getParent()!=null){invalidate();anim.postDelayed(this,34);}}};
+  BrandThanksView(Runnable d){super(MainActivity.this);dismiss=d;setLayerType(View.LAYER_TYPE_SOFTWARE,null);setClickable(true);anim.post(frame);}
+  @Override protected void onDraw(Canvas c){
+   super.onDraw(c);float w=getWidth(),h=getHeight(),cx=w*.5f,cy=h*.43f;float t=(System.currentTimeMillis()-started)/1000f;
+   p.setShader(new LinearGradient(0,0,w,h,new int[]{Color.rgb(2,8,35),Color.rgb(5,25,66),Color.rgb(2,12,39)},null,Shader.TileMode.CLAMP));c.drawRect(0,0,w,h,p);p.setShader(null);
+   p.setColor(Color.argb(35,0,180,255));c.drawCircle(cx,cy,dp(150)+(float)Math.sin(t*1.5)*dp(12),p);
+   p.setColor(Color.argb(22,51,255,0));c.drawCircle(cx,cy,dp(205),p);
+   c.save();c.rotate(t*13,cx,cy);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(1.4f));p.setColor(Color.argb(105,0,190,255));c.drawCircle(cx,cy,dp(112),p);p.setColor(Color.argb(130,51,255,0));c.drawCircle(cx,cy,dp(92),p);
+   for(int i=0;i<24;i++){double a=i*Math.PI/12;float x=cx+(float)Math.cos(a)*dp(112),y=cy+(float)Math.sin(a)*dp(112);p.setStyle(Paint.Style.FILL);p.setColor(i%3==0?Color.GREEN:Color.CYAN);c.drawCircle(x,y,dp(i%3==0?3:1.5f),p);}c.restore();
+   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3));p.setColor(Color.rgb(51,255,0));p.setShadowLayer(dp(18),0,0,Color.rgb(51,255,0));RectF oval=new RectF(cx-dp(83),cy-dp(45),cx+dp(83),cy+dp(45));c.drawOval(oval,p);p.clearShadowLayer();
+   p.setStyle(Paint.Style.FILL);p.setTextAlign(Paint.Align.CENTER);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD_ITALIC));p.setTextSize(dp(37));p.setColor(Color.WHITE);c.drawText("SENE",cx,cy+dp(9),p);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(13));p.setColor(Color.rgb(51,255,0));c.drawText("C O N E C T",cx,cy+dp(29),p);
+   float pulse=1f+(float)Math.sin(t*3)*.035f;c.save();c.scale(pulse,pulse,cx,h*.70f);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(20));p.setColor(Color.WHITE);c.drawText(titles[step],cx,h*.69f,p);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));p.setTextSize(dp(14));p.setColor(Color.rgb(205,225,245));String[] lines=notes[step].split("\\n");for(int i=0;i<lines.length;i++)c.drawText(lines[i],cx,h*.69f+dp(30+i*22),p);c.restore();
+   p.setTextSize(dp(11));p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setColor(Color.rgb(100,190,220));c.drawText("MENSAJE "+(step+1)+" DE 7",cx,h*.88f,p);
+   p.setColor(Color.WHITE);p.setTextSize(dp(12));p.setTypeface(Typeface.DEFAULT);c.drawText(step==6?"TOCA PARA CERRAR":"TOCA PARA CONTINUAR",cx,h*.93f,p);
+   p.setTextAlign(Paint.Align.LEFT);
+  }
+  @Override public boolean onTouchEvent(android.view.MotionEvent e){if(e.getAction()==android.view.MotionEvent.ACTION_UP){if(step<6){step++;started=System.currentTimeMillis();invalidate();}else{anim.removeCallbacks(frame);dismiss.run();}return true;}return true;}
+  @Override protected void onDetachedFromWindow(){anim.removeCallbacks(frame);super.onDetachedFromWindow();}
+ }
  private class BluetoothBadgeView extends View {
   private final Paint p=new Paint(3);
   BluetoothBadgeView(){super(MainActivity.this);}

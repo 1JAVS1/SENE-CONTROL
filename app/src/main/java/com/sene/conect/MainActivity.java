@@ -81,7 +81,7 @@ public class MainActivity extends Activity {
   brand.setOnClickListener(v->showBrandThanks(base));
   header.addView(brand,new LinearLayout.LayoutParams(0,dp(112),1));
   BluetoothBadgeView bluetooth=new BluetoothBadgeView();
-  header.addView(bluetooth,new LinearLayout.LayoutParams(dp(150),dp(112)));
+  header.addView(bluetooth,new LinearLayout.LayoutParams(dp(140),dp(112)));
   page.addView(header,lp(-1,dp(112),0,2,0,dp(8)));
 
   TextView section=txt("MENÚ PRINCIPAL",11,Color.rgb(150,207,235),true);

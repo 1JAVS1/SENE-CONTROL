@@ -158,42 +158,14 @@ public class MainActivity extends Activity {
  }
 
  private class BrandLogoView extends View {
-  private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+  private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
+  private final Bitmap logo=BitmapFactory.decodeResource(getResources(),R.drawable.sene_reference);
   BrandLogoView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_SOFTWARE,null);}
-  private void line(Canvas c,float x1,float y1,float x2,float y2,float sw){
-   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(sw);p.setStrokeCap(Paint.Cap.ROUND);
-   p.setShader(new LinearGradient(x1,y1,x2,y2,Color.rgb(13,95,255),Color.rgb(0,220,75),Shader.TileMode.CLAMP));
-   c.drawLine(x1,y1,x2,y2,p);p.setShader(null);
-  }
-  private void diamond(Canvas c,float cx,float cy,float r){
-   Path d=new Path();d.moveTo(cx,cy-r);d.lineTo(cx+r,cy);d.lineTo(cx,cy+r);d.lineTo(cx-r,cy);d.close();
-   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3));p.setStrokeJoin(Paint.Join.ROUND);
-   p.setShader(new LinearGradient(cx-r,cy-r,cx+r,cy+r,Color.rgb(0,220,75),Color.rgb(13,95,255),Shader.TileMode.CLAMP));c.drawPath(d,p);p.setShader(null);
-  }
   @Override protected void onDraw(Canvas c){
-   super.onDraw(c);float w=getWidth(),h=getHeight(),cx=w*.5f,cy=h*.48f;
-   c.save();c.scale(w/300f,h/200f);
-   // Fondo azul profundo, integrado con el fondo principal de la aplicación.
-   p.setStyle(Paint.Style.FILL);p.setShader(new LinearGradient(5,5,295,195,new int[]{Color.rgb(2,11,42),Color.rgb(5,42,91),Color.rgb(3,23,57)},null,Shader.TileMode.CLAMP));c.drawOval(5,5,295,195,p);p.setShader(null);
-   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(5);
-   p.setShader(new LinearGradient(5,10,295,190,Color.rgb(13,95,255),Color.rgb(0,230,65),Shader.TileMode.CLAMP));
-   c.drawOval(5,5,295,195,p);p.setShader(null);
-   // Cuatro haces diagonales y rombos laterales.
-   line(c,78,34,117,73,5);line(c,222,34,183,73,5);
-   line(c,78,166,117,127,5);line(c,222,166,183,127,5);
-   diamond(c,70,100,23);diamond(c,230,100,23);
-   // Microchip central azul con pistas verdes y terminales.
-   p.setStyle(Paint.Style.FILL);p.setShader(new LinearGradient(120,70,180,130,Color.rgb(0,135,235),Color.rgb(0,45,130),Shader.TileMode.CLAMP));
-   c.drawRoundRect(119,72,181,132,6,6,p);p.setShader(null);
-   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);p.setColor(Color.rgb(0,230,85));c.drawRoundRect(123,76,177,128,4,4,p);
-   p.setStrokeWidth(1.4f);p.setColor(Color.rgb(70,225,180));
-   for(int i=0;i<8;i++){float x=129+i*6; c.drawLine(x,72,x,62,p);c.drawLine(x,132,x,142,p);float y=82+i*6;c.drawLine(119,y,109,y,p);c.drawLine(181,y,191,y,p);}
-   p.setStyle(Paint.Style.FILL);p.setColor(Color.rgb(0,225,110));c.drawRoundRect(143,96,157,110,2,2,p);
-   // Nombre en negro, centrado en la parte inferior.
-   p.setShader(null);p.setColor(Color.BLACK);p.setTextAlign(Paint.Align.CENTER);
-   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(15);
-   c.drawText("SENE.CONECT",150,176,p);p.setTextAlign(Paint.Align.LEFT);
-   c.restore();
+   super.onDraw(c);
+   if(logo!=null){float scale=Math.min(getWidth()/(float)logo.getWidth(),getHeight()/(float)logo.getHeight());
+    float w=logo.getWidth()*scale,h=logo.getHeight()*scale;
+    c.drawBitmap(logo,null,new RectF((getWidth()-w)/2f,(getHeight()-h)/2f,(getWidth()+w)/2f,(getHeight()+h)/2f),p);}
   }
  }
  private void showBrandThanks(FrameLayout base){

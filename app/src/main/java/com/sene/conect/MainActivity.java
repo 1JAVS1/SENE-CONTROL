@@ -182,7 +182,7 @@ public class MainActivity extends Activity {
    Path b=new Path();b.moveTo(cx,cy-dp(17));b.lineTo(cx,cy+dp(17));b.moveTo(cx,cy-dp(17));b.lineTo(cx+dp(11),cy-dp(7));b.lineTo(cx-dp(11),cy+dp(9));b.moveTo(cx,cy+dp(17));b.lineTo(cx+dp(11),cy+dp(7));b.lineTo(cx-dp(11),cy-dp(9));c.drawPath(b,p);
    p.setStyle(Paint.Style.FILL);p.setColor(stateColor);c.drawCircle(cx+dp(22),cy+dp(19),dp(9),p);
    p.setColor(linked?Color.rgb(0,40,30):Color.WHITE);p.setStrokeWidth(dp(2));p.setStyle(Paint.Style.STROKE);Path mark=new Path();if(linked){mark.moveTo(cx+dp(17),cy+dp(19));mark.lineTo(cx+dp(21),cy+dp(23));mark.lineTo(cx+dp(27),cy+dp(15));}else{mark.moveTo(cx+dp(18),cy+dp(15));mark.lineTo(cx+dp(26),cy+dp(23));mark.moveTo(cx+dp(26),cy+dp(15));mark.lineTo(cx+dp(18),cy+dp(23));}c.drawPath(mark,p);
-   p.setStyle(Paint.Style.FILL);p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(8));String s="LISTO PARA ENVIAR";c.drawText(s,cx-p.measureText(s)/2,dp(82),p);String s2="DESDE SENE.CONECT";c.drawText(s2,cx-p.measureText(s2)/2,dp(93),p);
+   p.setStyle(Paint.Style.FILL);p.setColor(Color.WHITE);p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));if(linked){p.setTextSize(dp(8));String s="LISTO PARA ENVIAR";c.drawText(s,cx-p.measureText(s)/2,dp(82),p);String s2="DESDE SENE.CONECT";c.drawText(s2,cx-p.measureText(s2)/2,dp(93),p);}else{p.setTextSize(dp(10));String s="SIN ENLAZAR";c.drawText(s,cx-p.measureText(s)/2,dp(94),p);}
   }
  }
  private class MenuIconView extends View {

@@ -159,7 +159,21 @@ public class MainActivity extends Activity {
 
  private class BrandLogoView extends View {
   private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.FILTER_BITMAP_FLAG);
-  private final Bitmap logo=BitmapFactory.decodeResource(getResources(),R.drawable.sene_reference);
+  private final Bitmap logo=createHeaderLogo();
+  private Bitmap createHeaderLogo(){
+   Bitmap original=BitmapFactory.decodeResource(getResources(),R.drawable.sene_reference);
+   if(original==null)return null;
+   Bitmap whiteText=original.copy(Bitmap.Config.ARGB_8888,true);
+   original.recycle();
+   int w=whiteText.getWidth(),h=whiteText.getHeight();
+   int[] pixels=new int[w*h];whiteText.getPixels(pixels,0,w,0,0,w,h);
+   for(int i=0;i<pixels.length;i++){
+    int color=pixels[i],a=Color.alpha(color),r=Color.red(color),g=Color.green(color),b=Color.blue(color);
+    if(a>0&&r<75&&g<75&&b<75)pixels[i]=Color.argb(a,255,255,255);
+   }
+   whiteText.setPixels(pixels,0,w,0,0,w,h);
+   return whiteText;
+  }
   BrandLogoView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_SOFTWARE,null);}
   @Override protected void onDraw(Canvas c){
    super.onDraw(c);

@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 android {
  namespace 'com.sene.conect'
  compileSdk 35
- defaultConfig { applicationId 'com.sene.conect'; minSdk 23; targetSdk 35; versionCode 2; versionName '2.0' }
+ defaultConfig { applicationId 'com.sene.conect'; minSdk 23; targetSdk 32; versionCode 2; versionName '2.0' }
  signingConfigs { release { storeFile file(System.getenv('SENE_KEYSTORE') ?: 'release-placeholder.jks'); storePassword System.getenv('SENE_STORE_PASSWORD') ?: 'sene-release'; keyAlias System.getenv('SENE_KEY_ALIAS') ?: 'sene'; keyPassword System.getenv('SENE_KEY_PASSWORD') ?: 'sene-release' } }
  compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
  buildTypes { release { minifyEnabled false; signingConfig signingConfigs.release } }

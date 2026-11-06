@@ -13,6 +13,7 @@ import android.os.*;
 import android.view.Gravity;
 import android.widget.*;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.util.*;
 
 public class MainActivity extends Activity {
@@ -66,7 +67,8 @@ public class MainActivity extends Activity {
   @Override public void onCharacteristicChanged(BluetoothGatt g,BluetoothGattCharacteristic c){byte[] b=c.getValue();if(b!=null)runOnUiThread(()->status(new String(b,StandardCharsets.UTF_8).trim()));}
   @Override public void onCharacteristicWrite(BluetoothGatt g,BluetoothGattCharacteristic c,int st){runOnUiThread(()->{if(st!=BluetoothGatt.GATT_SUCCESS){txQueue.clear();txBusy=false;status("No se pudo enviar.");}else if(!txQueue.isEmpty())writeNext();else{txBusy=false;status("Rutas enviadas al controlador.");}});}
  };
- private void addRoutes(){String raw=input.getText().toString().trim().toUpperCase(Locale.ROOT);if(raw.isEmpty()){status("Guarda al menos una ruta.");return;}for(String v:raw.split("[.\\n,;]+")){String r=v.trim().replaceAll("\\s+"," ");if(!r.isEmpty()&&!routes.contains(r)&&routes.size()<20)routes.add(r);}saveRoutes();input.setText("");renderRoutes();status("Rutas guardadas.");}
+ private String removeAccents(String value){return Normalizer.normalize(value,Normalizer.Form.NFD).replaceAll("\\p{M}+","");}
+ private void addRoutes(){String raw=removeAccents(input.getText().toString()).trim().toUpperCase(Locale.ROOT);if(raw.isEmpty()){status("Guarda al menos una ruta.");return;}for(String v:raw.split("[.\\n,;]+")){String r=removeAccents(v).trim().replaceAll("\\s+"," ");if(!r.isEmpty()&&!routes.contains(r)&&routes.size()<20)routes.add(r);}saveRoutes();input.setText("");renderRoutes();status("Rutas guardadas sin acentos.");}
  private void renderRoutes(){if(routesBox==null)return;routesBox.removeAllViews();count.setText("RUTAS GUARDADAS  ·  "+routes.size()+" / 20");if(routes.isEmpty()){routesBox.addView(txt("No hay rutas guardadas.",13,MUTED,false));return;}for(int i=0;i<routes.size();i++){final int index=i;LinearLayout r=new LinearLayout(this);r.setGravity(Gravity.CENTER_VERTICAL);r.setPadding(dp(10),dp(9),dp(8),dp(9));r.setBackground(shape(Color.rgb(246,249,251),12));r.addView(txt(String.format(Locale.ROOT,"%02d   %s",i+1,routes.get(i)),14,INK,true),new LinearLayout.LayoutParams(0,-2,1));Button del=btn("×",Color.rgb(255,235,235),Color.rgb(190,55,55));del.setMinWidth(dp(42));del.setOnClickListener(v->{routes.remove(index);saveRoutes();renderRoutes();});r.addView(del);routesBox.addView(r,lp(-1,-2,0,3,0,3));}}
  private void loadRoutes(){String s=prefs.getString("routes","");if(!s.isEmpty())for(String r:s.split("\\n"))if(!r.trim().isEmpty()&&routes.size()<20)routes.add(r.trim());}
  private void saveRoutes(){prefs.edit().putString("routes",String.join("\n",routes)).apply();}

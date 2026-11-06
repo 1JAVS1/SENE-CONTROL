@@ -1,4 +1,5 @@
 package com.sene.conect;
+// UI neón SENE CONECT
 
 import android.Manifest;
 import android.app.Activity;

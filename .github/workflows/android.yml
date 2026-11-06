@@ -20,9 +20,11 @@ jobs:
           gradle-version: '8.7'
       - name: Build debug APK
         run: gradle --no-daemon --stacktrace :app:assembleDebug
+      - name: Rename installable APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk app/build/outputs/apk/debug/SENE.CONECT.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: SENE-CONECT-debug-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: SENE.CONECT
+          path: app/build/outputs/apk/debug/SENE.CONECT.apk
           if-no-files-found: error
           retention-days: 30

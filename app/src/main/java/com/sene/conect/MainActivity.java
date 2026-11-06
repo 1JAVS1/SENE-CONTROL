@@ -202,8 +202,6 @@ public class MainActivity extends Activity {
    float pulse=1f+(float)Math.sin(t*3)*.035f;c.save();c.scale(pulse,pulse,cx,h*.70f);
    p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(20));p.setColor(Color.WHITE);c.drawText(titles[step],cx,h*.69f,p);
    p.setTypeface(Typeface.create("sans-serif",Typeface.NORMAL));p.setTextSize(dp(14));p.setColor(Color.rgb(205,225,245));String[] lines=notes[step].split("\\n");for(int i=0;i<lines.length;i++)c.drawText(lines[i],cx,h*.69f+dp(30+i*22),p);c.restore();
-   p.setTextSize(dp(11));p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setColor(Color.rgb(100,190,220));c.drawText("MENSAJE "+(step+1)+" DE 7",cx,h*.88f,p);
-   p.setColor(Color.WHITE);p.setTextSize(dp(12));p.setTypeface(Typeface.DEFAULT);c.drawText(step==6?"TOCA PARA CERRAR":"TOCA PARA CONTINUAR",cx,h*.93f,p);
    p.setTextAlign(Paint.Align.LEFT);
   }
   @Override public boolean onTouchEvent(android.view.MotionEvent e){if(e.getAction()==android.view.MotionEvent.ACTION_UP){if(step<6){step++;started=System.currentTimeMillis();invalidate();}else{anim.removeCallbacks(frame);dismiss.run();}return true;}return true;}

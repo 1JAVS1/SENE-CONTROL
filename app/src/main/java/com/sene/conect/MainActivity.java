@@ -7,6 +7,8 @@ import android.bluetooth.le.*;
 import android.content.*;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Typeface;
 import android.graphics.drawable.GradientDrawable;
 import android.os.*;
@@ -32,7 +34,7 @@ public class MainActivity extends Activity {
  private LinearLayout.LayoutParams lp(int w,int h,int top,int bottom){LinearLayout.LayoutParams p=new LinearLayout.LayoutParams(w,h);p.setMargins(0,dp(top),0,dp(bottom));return p;}
  private TextView txt(String s,int z,int c,boolean bold){TextView t=new TextView(this);t.setText(s);t.setTextSize(z);t.setTextColor(c);if(bold)t.setTypeface(Typeface.DEFAULT,Typeface.BOLD);return t;}
  private Button btn(String s,int bg,int fg){Button b=new Button(this);b.setText(s);b.setTextColor(fg);b.setTextSize(12);b.setTypeface(null,Typeface.BOLD);b.setAllCaps(false);b.setElevation(dp(2));b.setBackground(shape(bg,16));return b;}
- private FrameLayout screenRoot(){FrameLayout frame=new FrameLayout(this);frame.setBackgroundColor(NAVY);ImageView watermark=new ImageView(this);watermark.setImageResource(R.drawable.sene_logo);watermark.setScaleType(ImageView.ScaleType.FIT_CENTER);watermark.setAlpha(0.10f);FrameLayout.LayoutParams wm=new FrameLayout.LayoutParams(dp(320),dp(200),Gravity.CENTER);frame.addView(watermark,wm);return frame;}
+ private FrameLayout screenRoot(){FrameLayout frame=new FrameLayout(this);frame.setBackgroundColor(NAVY);ImageView watermark=new ImageView(this);Bitmap original=BitmapFactory.decodeResource(getResources(),R.drawable.sene_logo);Bitmap smoothLogo=Bitmap.createScaledBitmap(original,1024,640,true);watermark.setImageBitmap(smoothLogo);if(original!=smoothLogo)original.recycle();watermark.setScaleType(ImageView.ScaleType.FIT_CENTER);watermark.setAlpha(0.10f);FrameLayout.LayoutParams wm=new FrameLayout.LayoutParams(dp(320),dp(200),Gravity.CENTER);frame.addView(watermark,wm);return frame;}
  private LinearLayout card(){LinearLayout c=new LinearLayout(this);c.setOrientation(1);c.setPadding(dp(16),dp(16),dp(16),dp(16));c.setBackground(shape(Color.argb(244,255,255,255),20));c.setElevation(dp(3));return c;}
  private void title(LinearLayout p,String a,String b){p.addView(txt(a,17,INK,true),lp(-1,-2,0,0,0,3));p.addView(txt(b,12,MUTED,false),lp(-1,-2,0,0,0,9));}
  private void render(){

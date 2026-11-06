@@ -71,8 +71,8 @@ public class MainActivity extends Activity {
   LinearLayout list=new LinearLayout(this);list.setOrientation(1);list.setClipChildren(false);list.setClipToPadding(false);
   sc.addView(list,new ScrollView.LayoutParams(-1,-2));
   addHomeCard(list,0,"MIS DISPOSITIVOS","Gestiona tus equipos",()->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});
-  addHomeCard(list,1,"MIS RUTAS","Administra tus rutas",()->renderWorkspace());
-  addHomeCard(list,2,"TRANSMISIÓN","Envía rutas a tus dispositivos",()->{renderWorkspace();status(gatt!=null&&writeChar!=null?"Controlador conectado. Selecciona las rutas y pulsa TRANSMITIR.":"Conecta tu guía SENE para poder transmitir rutas.");});
+  addHomeCard(list,1,"MIS RUTAS","Consulta y guarda tus rutas",()->renderMyRoutes());
+  addHomeCard(list,2,"TRANSMISIÓN","Administra y envía rutas a tu guía",()->renderWorkspace());
   addHomeCard(list,3,"CONFIGURACIÓN","Ajusta las opciones",()->{try{startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));}catch(Exception e){status("No se pudieron abrir los ajustes Bluetooth.");}});
   addHomeCard(list,4,"ACERCA DE","Información de la app",()->new android.app.AlertDialog.Builder(this).setTitle("SENE CONECT").setMessage("Control de guías SENE mediante Bluetooth BLE.\\n\\nAdministra tus dispositivos y transmite rutas guardadas.").setPositiveButton("ACEPTAR",null).show());
   page.addView(sc,new LinearLayout.LayoutParams(-1,0,1));
@@ -180,31 +180,25 @@ public class MainActivity extends Activity {
    c.restore();
   }
  }
- private void renderWorkspace(){
-  deviceWindow=false;
-  FrameLayout base=screenRoot();
-  ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);scroll.setBackgroundColor(Color.TRANSPARENT);LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setBackgroundColor(Color.TRANSPARENT);page.setPadding(dp(18),dp(16),dp(18),dp(28));scroll.addView(page);base.addView(scroll,new FrameLayout.LayoutParams(-1,-1));setContentView(base);
+ private void renderMyRoutes(){
+  deviceWindow=false;FrameLayout base=screenRoot();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setPadding(dp(18),dp(16),dp(18),dp(28));scroll.addView(page);base.addView(scroll,new FrameLayout.LayoutParams(-1,-1));setContentView(base);
   TextView back=txt("‹  MENÚ PRINCIPAL",13,Color.WHITE,true);back.setPadding(dp(4),dp(2),0,dp(10));back.setOnClickListener(v->render());page.addView(back,lp(-1,-2,0,0,0,8));
-  LinearLayout hero=card();hero.setOrientation(0);hero.setGravity(Gravity.CENTER_VERTICAL);hero.setPadding(dp(16),dp(14),dp(16),dp(14));
-  ImageView logo=new ImageView(this);logo.setImageResource(R.drawable.sene_logo);logo.setScaleType(ImageView.ScaleType.CENTER_CROP);logo.setBackground(shape(Color.WHITE,100));logo.setClipToOutline(true);logo.setPadding(dp(2),dp(2),dp(2),dp(2));hero.addView(logo,new LinearLayout.LayoutParams(dp(68),dp(68)));
-  LinearLayout brand=new LinearLayout(this);brand.setOrientation(1);brand.setPadding(dp(13),0,0,0);brand.addView(txt("SENE.CONECT",24,INK,true));brand.addView(txt("TU GUÍA, SIEMPRE EN RUTA",10,CYAN,true));hero.addView(brand,new LinearLayout.LayoutParams(0,-2,1));page.addView(hero,lp(-1,-2,0,4,0,14));
-  LinearLayout ready=card();ready.setOrientation(0);ready.setGravity(Gravity.CENTER_VERTICAL);ready.setBackground(shape(Color.rgb(231,245,241),18));
-  connectionDot=txt("●",22,gatt!=null&&writeChar!=null?GREEN:Color.rgb(225,83,92),true);ready.addView(connectionDot,lp(dp(34),-2,0,0,0,0));
-  LinearLayout readyText=new LinearLayout(this);readyText.setOrientation(1);readyText.addView(txt("ESTADO DEL CONTROLADOR",10,MUTED,true));
-  connection=txt(gatt!=null&&writeChar!=null?"LISTO PARA ENVIAR DESDE SENE.CONECT":"SIN CONEXIÓN · GUÍA SENE",15,gatt!=null&&writeChar!=null?GREEN:Color.rgb(204,75,83),true);readyText.addView(connection);ready.addView(readyText,new LinearLayout.LayoutParams(0,-2,1));page.addView(ready,lp(-1,-2,0,0,0,18));
-  title(page,"DISPOSITIVO","Conecta tu guía SENE por Bluetooth");LinearLayout dc=card();
-  dc.addView(txt(gatt!=null&&writeChar!=null?"●  SENE ENLAZADO":"○  AÚN NO HAY DISPOSITIVO",13,gatt!=null&&writeChar!=null?GREEN:MUTED,true),lp(-1,-2,0,0,0,12));
-  Button scan=btn(gatt!=null&&writeChar!=null?"  ADMINISTRAR CONEXIÓN":"＋  CONECTAR DISPOSITIVO SENE",CYAN,Color.WHITE);scan.setOnClickListener(v->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});dc.addView(scan,lp(-1,dp(52),0,0,0,0));page.addView(dc,lp(-1,-2,0,0,0,18));
-  title(page,"TUS RUTAS","Prepara los destinos que recibirá tu guía");LinearLayout rc=card();
-  count=txt("RUTAS GUARDADAS     "+routes.size()+" / 20",11,CYAN,true);rc.addView(count,lp(-1,-2,0,0,0,10));
-  TextView hint=txt("ESCRIBE TUS DESTINOS",10,MUTED,true);rc.addView(hint,lp(-1,-2,0,0,0,6));
-  input=new EditText(this);input.setHint("Separa las rutas con puntos.\nEjemplo: CENTRO.PLAZA.HOSPITAL");input.setTextColor(INK);input.setHintTextColor(MUTED);input.setGravity(Gravity.TOP|Gravity.START);input.setTextSize(14);input.setMinLines(2);input.setPadding(dp(14),dp(13),dp(14),dp(13));input.setBackground(shape(Color.rgb(244,246,251),14));rc.addView(input,lp(-1,-2,0,0,0,10));
-  Button save=btn("＋  GUARDAR RUTAS",INK,Color.WHITE);save.setOnClickListener(v->addRoutes());rc.addView(save,lp(-1,dp(48),0,0,0,14));
-  routesBox=new LinearLayout(this);routesBox.setOrientation(1);rc.addView(routesBox);renderRoutes();
-  Button manage=btn("☷  ADMINISTRAR Y SELECCIONAR",Color.rgb(232,239,247),CYAN);manage.setOnClickListener(v->showRouteManager());rc.addView(manage,lp(-1,dp(48),14,0,0,0));
-  Button send=btn("▶  TRANSMITIR RUTAS",GREEN,Color.WHITE);send.setOnClickListener(v->sendRoutes());rc.addView(send,lp(-1,dp(54),9,0,0,0));page.addView(rc,lp(-1,-2,0,0,0,16));
-  message=txt("SENE está listo. Conecta tu guía para comenzar.",12,MUTED,false);message.setGravity(Gravity.CENTER);page.addView(message,lp(-1,-2,4,0));
+  TextView heading=txt("MIS RUTAS",24,Color.WHITE,true);page.addView(heading,lp(-1,-2,0,8,0,3));page.addView(txt("Consulta tus destinos guardados y agrega nuevas rutas.",12,Color.rgb(190,215,235),false),lp(-1,-2,0,0,0,14));
+  LinearLayout rc=card();count=txt("RUTAS GUARDADAS  ·  "+routes.size()+" / 20",11,CYAN,true);rc.addView(count,lp(-1,-2,0,0,0,10));routesBox=new LinearLayout(this);routesBox.setOrientation(1);rc.addView(routesBox);renderRoutes();
+  TextView hint=txt("ESCRIBIR NUEVAS RUTAS",11,CYAN,true);rc.addView(hint,lp(-1,-2,0,14,0,6));
+  input=new EditText(this);input.setHint("Separa las rutas con puntos. Ejemplo: CENTRO.PLAZA.HOSPITAL");input.setTextColor(INK);input.setHintTextColor(MUTED);input.setGravity(Gravity.TOP|Gravity.START);input.setTextSize(14);input.setMinLines(2);input.setPadding(dp(14),dp(13),dp(14),dp(13));input.setBackground(shape(Color.rgb(244,246,251),14));rc.addView(input,lp(-1,-2,0,0,0,10));
+  Button save=btn("＋  GUARDAR RUTAS",INK,Color.WHITE);save.setOnClickListener(v->addRoutes());rc.addView(save,lp(-1,dp(50),0,0,0,0));page.addView(rc,lp(-1,-2,0,0,0,16));
  }
+ private void renderWorkspace(){
+  deviceWindow=false;FrameLayout base=screenRoot();ScrollView scroll=new ScrollView(this);scroll.setFillViewport(true);LinearLayout page=new LinearLayout(this);page.setOrientation(1);page.setPadding(dp(18),dp(16),dp(18),dp(28));scroll.addView(page);base.addView(scroll,new FrameLayout.LayoutParams(-1,-1));setContentView(base);
+  TextView back=txt("‹  MENÚ PRINCIPAL",13,Color.WHITE,true);back.setPadding(dp(4),dp(2),0,dp(10));back.setOnClickListener(v->render());page.addView(back,lp(-1,-2,0,0,0,8));
+  TextView heading=txt("TRANSMISIÓN",24,Color.WHITE,true);page.addView(heading,lp(-1,-2,0,8,0,3));page.addView(txt("Selecciona las rutas que recibirá tu guía SENE.",12,Color.rgb(190,215,235),false),lp(-1,-2,0,0,0,14));
+  LinearLayout ready=card();ready.setOrientation(1);ready.addView(txt("ESTADO DEL CONTROLADOR",10,MUTED,true));connection=txt(gatt!=null&&writeChar!=null?"CONECTADO · LISTO PARA ENVIAR":"SIN CONEXIÓN · GUÍA SENE",15,gatt!=null&&writeChar!=null?GREEN:Color.rgb(204,75,83),true);ready.addView(connection,lp(-1,-2,0,5,0,0));Button scan=btn(gatt!=null&&writeChar!=null?"ADMINISTRAR CONEXIÓN":"＋  CONECTAR DISPOSITIVO SENE",CYAN,Color.WHITE);scan.setOnClickListener(v->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});ready.addView(scan,lp(-1,dp(50),12,0,0,0));page.addView(ready,lp(-1,-2,0,0,0,14));
+  LinearLayout rc=card();rc.addView(txt("RUTAS DISPONIBLES",15,INK,true),lp(-1,-2,0,0,0,4));count=txt("RUTAS GUARDADAS  ·  "+routes.size()+" / 20",11,CYAN,true);rc.addView(count,lp(-1,-2,0,0,0,10));routesBox=new LinearLayout(this);routesBox.setOrientation(1);rc.addView(routesBox);renderTransmissionRoutes();
+  Button manage=btn("☷  ADMINISTRAR Y SELECCIONAR RUTAS",Color.rgb(232,239,247),CYAN);manage.setOnClickListener(v->showRouteManager());rc.addView(manage,lp(-1,dp(48),12,0,0,0));Button send=btn("▶  TRANSMITIR RUTAS SELECCIONADAS",GREEN,Color.WHITE);send.setOnClickListener(v->sendRoutes());rc.addView(send,lp(-1,dp(54),9,0,0,0));page.addView(rc,lp(-1,-2,0,0,0,14));
+  message=txt("Conecta tu guía SENE y selecciona las rutas que deseas enviar.",12,Color.rgb(190,215,235),false);message.setGravity(Gravity.CENTER);page.addView(message,lp(-1,-2,4,0));
+ }
+ private void renderTransmissionRoutes(){if(routesBox==null)return;routesBox.removeAllViews();if(routes.isEmpty()){routesBox.addView(txt("No hay rutas guardadas. Agrégalas en MIS RUTAS.",13,MUTED,false));return;}for(String route:routes){CheckBox check=new CheckBox(this);check.setText(route);check.setTextColor(INK);check.setTextSize(14);check.setButtonTintList(android.content.res.ColorStateList.valueOf(GREEN));check.setChecked(selectedRoutes.contains(route));check.setOnCheckedChangeListener((v,on)->{if(on)selectedRoutes.add(route);else selectedRoutes.remove(route);});routesBox.addView(check,lp(-1,-2,2,2,0,2));}}
  private void showDeviceWindow(){
   deviceWindow=true;FrameLayout base=screenRoot();LinearLayout root=new LinearLayout(this);root.setOrientation(1);root.setPadding(dp(18),dp(20),dp(18),dp(22));root.setBackgroundColor(Color.TRANSPARENT);base.addView(root,new FrameLayout.LayoutParams(-1,-1));setContentView(base);
   TextView back=txt("‹  CONEXIÓN BLUETOOTH",14,CYAN,true);root.addView(back,lp(-1,dp(42),0,8));back.setOnClickListener(v->{stopScan();render();});
@@ -235,6 +229,6 @@ public class MainActivity extends Activity {
  private void loadRoutes(){String s=prefs.getString("routes","");if(!s.isEmpty())for(String r:s.split("\\n"))if(!r.trim().isEmpty()&&routes.size()<20){routes.add(removeAccents(r.trim()).toUpperCase(Locale.ROOT));selectedRoutes.add(routes.get(routes.size()-1));}}
  private void saveRoutes(){prefs.edit().putString("routes",String.join("\n",routes)).apply();}
  private void sendRoutes(){if(gatt==null||writeChar==null){status("Primero enlaza con SENE.");return;}ArrayList<String> toSend=new ArrayList<>();for(String route:routes)if(selectedRoutes.contains(route))toSend.add(route);if(toSend.isEmpty()){status("Selecciona al menos una ruta en Administrar rutas.");return;}if(txBusy){status("Espera a que termine el envío.");return;}long epoch=System.currentTimeMillis()/1000L;String timeMsg="TIME="+epoch+"\n";String routesMsg="AMANDAR"+String.join(".",toSend)+".\n";txQueue.clear();txQueue.add(timeMsg.getBytes(StandardCharsets.UTF_8));txQueue.add(routesMsg.getBytes(StandardCharsets.UTF_8));txBusy=true;writeNext();} private void writeNext(){if(gatt==null||writeChar==null){txQueue.clear();txBusy=false;status("Bluetooth desconectado.");return;}if(txQueue.isEmpty()){txBusy=false;status("Rutas enviadas al controlador.");return;}byte[] data=txQueue.remove();try{writeChar.setWriteType(BluetoothGattCharacteristic.WRITE_TYPE_DEFAULT);writeChar.setValue(data);if(!gatt.writeCharacteristic(writeChar)){txQueue.clear();txBusy=false;status("No se pudo enviar.");}else status("Enviando rutas...");}catch(SecurityException e){txQueue.clear();txBusy=false;status("Permiso Bluetooth requerido.");}}
- @Override public void onBackPressed(){if(deviceWindow){stopScan();render();}else super.onBackPressed();}
+ @Override public void onBackPressed(){stopScan();render();}
  @Override protected void onDestroy(){stopScan();if(gatt!=null){try{gatt.close();}catch(Exception ignored){}gatt=null;}super.onDestroy();}
 }

@@ -72,7 +72,7 @@ public class MainActivity extends Activity {
   sc.addView(list,new ScrollView.LayoutParams(-1,-2));
   addHomeCard(list,0,"MIS DISPOSITIVOS","Gestiona tus equipos",()->{showDeviceWindow();if(hasScanPermissions())startScan();else permissions();});
   addHomeCard(list,1,"MIS RUTAS","Administra tus rutas",()->renderWorkspace());
-  addHomeCard(list,2,"TRANSMISIÓN","Envía rutas a tus dispositivos",()->sendRoutes());
+  addHomeCard(list,2,"TRANSMISIÓN","Envía rutas a tus dispositivos",()->{renderWorkspace();status(gatt!=null&&writeChar!=null?"Controlador conectado. Selecciona las rutas y pulsa TRANSMITIR.":"Conecta tu guía SENE para poder transmitir rutas.");});
   addHomeCard(list,3,"CONFIGURACIÓN","Ajusta las opciones",()->{try{startActivity(new Intent(android.provider.Settings.ACTION_BLUETOOTH_SETTINGS));}catch(Exception e){status("No se pudieron abrir los ajustes Bluetooth.");}});
   addHomeCard(list,4,"ACERCA DE","Información de la app",()->new android.app.AlertDialog.Builder(this).setTitle("SENE CONECT").setMessage("Control de guías SENE mediante Bluetooth BLE.\\n\\nAdministra tus dispositivos y transmite rutas guardadas.").setPositiveButton("ACEPTAR",null).show());
   page.addView(sc,new LinearLayout.LayoutParams(-1,0,1));

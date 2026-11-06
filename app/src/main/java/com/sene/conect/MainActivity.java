@@ -38,7 +38,7 @@ public class MainActivity extends Activity {
  private LinearLayout card(){LinearLayout c=new LinearLayout(this);c.setOrientation(1);c.setPadding(dp(18),dp(18),dp(18),dp(18));c.setBackground(shape(Color.WHITE,22));c.setElevation(dp(2));return c;}
  private void title(LinearLayout p,String a,String b){p.addView(txt(a,16,INK,true),lp(-1,-2,0,0,0,3));p.addView(txt(b,12,MUTED,false),lp(-1,-2,0,0,0,9));}
 
- private void render(){
+ // Menú principal SENE CONECT: diseño neón personalizado.\n private void render(){
   deviceWindow=false;
   getWindow().setStatusBarColor(Color.rgb(2,11,42));
   getWindow().setNavigationBarColor(Color.rgb(2,11,42));

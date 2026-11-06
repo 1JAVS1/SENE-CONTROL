@@ -158,17 +158,20 @@ public class MainActivity extends Activity {
  }
 
  private class BrandLogoView extends View {
-  private final Paint p=new Paint(3);
-  BrandLogoView(){super(MainActivity.this);}
+  private final Paint p=new Paint(Paint.ANTI_ALIAS_FLAG|Paint.SUBPIXEL_TEXT_FLAG);
+  BrandLogoView(){super(MainActivity.this);setLayerType(View.LAYER_TYPE_SOFTWARE,null);}
   @Override protected void onDraw(Canvas c){
-   super.onDraw(c);float w=getWidth(),h=getHeight();
-   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3));p.setColor(Color.rgb(51,255,0));p.setShadowLayer(dp(12),0,0,Color.rgb(51,255,0));
-   RectF oval=new RectF(dp(3),dp(10),w-dp(8),h-dp(13));c.drawArc(oval,205,305,false,p);p.clearShadowLayer();
+   super.onDraw(c);float w=getWidth(),h=getHeight(),cx=w*.5f;
+   // Ovalo completo, con margen para que nunca se recorte en el encabezado.
+   p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(dp(3.2f));p.setColor(Color.rgb(51,255,0));
+   p.setStrokeJoin(Paint.Join.ROUND);p.setShadowLayer(dp(7),0,0,Color.rgb(51,255,0));
+   RectF oval=new RectF(dp(7),dp(8),w-dp(7),h-dp(8));c.drawOval(oval,p);p.clearShadowLayer();
+   // Marca grande y legible, centrada dentro del óvalo.
    p.setStyle(Paint.Style.FILL);p.setColor(Color.WHITE);p.setTextAlign(Paint.Align.CENTER);
-   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD_ITALIC));p.setTextSize(dp(36));
-   c.drawText("SENE",w*.5f,h*.55f,p);
-   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(15));
-   c.drawText("CONECT",w*.5f,h*.77f,p);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD_ITALIC));p.setTextSize(dp(34));
+   c.drawText("SENE",cx,h*.53f,p);
+   p.setTypeface(Typeface.create("sans-serif",Typeface.BOLD));p.setTextSize(dp(19));
+   c.drawText(".CONECT",cx,h*.75f,p);
    p.setTextAlign(Paint.Align.LEFT);
   }
  }
